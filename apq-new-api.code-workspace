@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "../../ApqGitee/apq-new-api"
+		},
+		{
+			"path": "../../ApqGitee/Apq-MIXAPI"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"Codegeex.RepoIndex": true
+	}
+}

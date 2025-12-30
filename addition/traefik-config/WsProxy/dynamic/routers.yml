@@ -1,0 +1,244 @@
+# 动态路由配置
+# 对应 Caddyfile 的各个 handle 块
+
+http:
+  routers:
+    # ==================== 文件服务器路由 ====================
+
+    # gadmin60 静态文件 :46960
+    gadmin60-static:
+      rule: "PathPrefix(`/`)"
+      entryPoints:
+        - gadmin60-static
+      middlewares:
+        - compress
+      service: gadmin60-static-srv
+      priority: 1
+
+    # gadmin62 静态文件 :46962
+    gadmin62-static:
+      rule: "PathPrefix(`/`)"
+      entryPoints:
+        - gadmin62-static
+      middlewares:
+        - compress
+      service: gadmin62-static-srv
+      priority: 1
+
+    # gadmin66 静态文件 :46966
+    gadmin66-static:
+      rule: "PathPrefix(`/`)"
+      entryPoints:
+        - gadmin66-static
+      middlewares:
+        - compress
+      service: gadmin66-static-srv
+      priority: 1
+
+    # ==================== HTTP 路由（80端口） ====================
+
+    # HTTP 重定向到 HTTPS（默认）
+    http-redirect:
+      rule: "PathPrefix(`/`)"
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-to-https
+      service: noop@internal
+      priority: 1
+
+    # ==================== HTTPS 路由（443端口） ====================
+
+    # syncthing
+    syncthing:
+      rule: "PathPrefix(`/syncthing`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - compress
+        - strip-syncthing
+      service: syncthing
+      tls: {}
+      priority: 100
+
+    # GsProxy_45800 (HTTPS)
+    gsproxy-https:
+      rule: "PathPrefix(`/GsProxy`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - compress
+      service: gsproxy-45800
+      tls: {}
+      priority: 100
+
+    # GsProxy_45801 (HTTPS)
+    gs1proxy-https:
+      rule: "PathPrefix(`/Gs1Proxy`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - compress
+      service: gsproxy-45801
+      tls: {}
+      priority: 100
+
+    # WsRepeater (HTTPS)
+    wsrepeater-https:
+      rule: "PathPrefix(`/WsRepeater/`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - compress
+      service: wsrepeater
+      tls: {}
+      priority: 100
+
+    # gadmin60 (HTTPS)
+    gadmin60-https:
+      rule: "PathPrefix(`/gadmin60/`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - compress
+      service: gadmin60-static-srv
+      tls: {}
+      priority: 100
+
+    # gadminApi60 (HTTPS)
+    gadminapi60-https:
+      rule: "PathPrefix(`/gadminApi60/`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - compress
+      service: gadminapi60
+      tls: {}
+      priority: 100
+
+    # gadmin62 (HTTPS)
+    gadmin62-https:
+      rule: "PathPrefix(`/gadmin62/`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - compress
+      service: gadmin62-static-srv
+      tls: {}
+      priority: 100
+
+    # gadminApi62 (HTTPS)
+    gadminapi62-https:
+      rule: "PathPrefix(`/gadminApi62/`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - compress
+      service: gadminapi62
+      tls: {}
+      priority: 100
+
+    # gadmin66 (HTTPS)
+    gadmin66-https:
+      rule: "PathPrefix(`/gadmin66/`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - compress
+      service: gadmin66-static-srv
+      tls: {}
+      priority: 100
+
+    # gadminApi66 (HTTPS)
+    gadminapi66-https:
+      rule: "PathPrefix(`/gadminApi66/`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - compress
+      service: gadminapi66
+      tls: {}
+      priority: 100
+
+    # charge66 (HTTPS)
+    charge66-https:
+      rule: "PathPrefix(`/charge66/`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - compress
+      service: charge66
+      tls: {}
+      priority: 100
+
+    # charge62 (HTTPS)
+    charge62-https:
+      rule: "PathPrefix(`/charge62/`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - compress
+      service: charge62
+      tls: {}
+      priority: 100
+
+    # charge60 (HTTPS)
+    charge60-https:
+      rule: "PathPrefix(`/charge60/`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - compress
+      service: charge60
+      tls: {}
+      priority: 100
+
+    # Charge32 (HTTPS)
+    charge32-https:
+      rule: "PathPrefix(`/Charge32/`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - compress
+      service: charge32
+      tls: {}
+      priority: 100
+
+    # 毛线 (HTTPS)
+    maoxian:
+      rule: "PathPrefix(`/maoxian/`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - compress
+        - strip-maoxian
+      service: maoxian
+      tls: {}
+      priority: 100
+
+    # 默认路由 - new-api 反向代理 + 镜像 (HTTPS)
+    default-https:
+      rule: "PathPrefix(`/`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - compress
+      service: new-api-mirrored
+      tls: {}
+      priority: 1
+
+    # ==================== zl-q.syya.com 专用路由 ====================
+
+    # charge60 for zl-q.syya.com
+    charge60-qq:
+      rule: "Host(`zl-q.syya.com`) && PathPrefix(`/charge60/`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - compress
+      service: charge60
+      tls:
+        certResolver: ""
+        domains:
+          - main: "zl-q.syya.com"
+      priority: 200

@@ -1,0 +1,83 @@
+# 国内网络优化版 Dockerfile
+# 使用方法: docker build -f Dockerfile.cn -t new-api .
+# 推荐构建命令:
+#   mkdir -p $HOME/.buildx-cache
+#   docker buildx build -f Dockerfile.cn \
+#     --platform linux/amd64,linux/arm64 \
+#     -t registry.cn-chengdu.aliyuncs.com/apq/apq-new-api \
+#     --cache-from type=local,src=$HOME/.buildx-cache \
+#     --cache-to type=local,dest=$HOME/.buildx-cache,mode=max \
+#     --push .
+
+# 全局构建参数（必须在第一个 FROM 之前声明）
+ARG DOCKER_MIRROR=docker.1panel.live
+
+# 阶段1：前端构建（使用 Node.js 替代 Bun）
+FROM --platform=$BUILDPLATFORM swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/library/node:20-alpine AS builder
+
+WORKDIR /build
+COPY web/package.json web/package-lock.json* ./
+
+# 使用淘宝 npm 镜像
+RUN npm config set registry https://registry.npmmirror.com && npm install --legacy-peer-deps
+
+COPY ./web .
+COPY ./VERSION .
+RUN NODE_OPTIONS="--max-old-space-size=4096" DISABLE_ESLINT_PLUGIN='true' VITE_REACT_APP_VERSION=$(cat VERSION) npm run build
+
+# 阶段2：后端构建
+FROM --platform=$BUILDPLATFORM ${DOCKER_MIRROR}/library/golang:1.25-alpine AS builder2
+
+ENV GO111MODULE=on CGO_ENABLED=0
+ENV GOPROXY=https://goproxy.cn,https://mirrors.aliyun.com/goproxy/,direct
+ENV GOSUMDB=sum.golang.google.cn
+
+ARG TARGETOS=linux
+ARG TARGETARCH
+
+WORKDIR /build
+
+# 第一层：依赖文件（变化最少）
+ADD go.mod go.sum ./
+# 增加重试机制，网络不稳定时自动重试
+RUN for i in 1 2 3; do go mod download && break || sleep 5; done
+
+# 第二层：稳定的基础代码（按变化频率从低到高）
+COPY types/ ./types/
+COPY constant/ ./constant/
+COPY dto/ ./dto/
+COPY logger/ ./logger/
+COPY setting/ ./setting/
+
+# 第三层：核心业务代码
+COPY common/ ./common/
+COPY model/ ./model/
+COPY middleware/ ./middleware/
+COPY service/ ./service/
+
+# 第四层：经常变化的代码
+COPY relay/ ./relay/
+COPY controller/ ./controller/
+COPY router/ ./router/
+COPY addition/ ./addition/
+
+# 第五层：入口文件和其他
+COPY main.go ./
+COPY VERSION ./
+
+# 复制前端构建产物
+COPY --from=builder /build/dist ./web/dist
+
+RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -ldflags "-s -w -X 'github.com/QuantumNous/new-api/common.Version=$(cat VERSION)'" -o new-api
+
+# 阶段3：运行环境（使用 Alpine 轻量级镜像）
+FROM swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/library/alpine:3.19
+
+# 静态编译的 Go 程序不需要额外依赖
+# ca-certificates: Go 程序如果使用 crypto/tls 会内嵌证书，或者可以挂载宿主机证书
+# tzdata: 可以通过环境变量 TZ 或挂载 /etc/localtime 解决
+
+COPY --from=builder2 /build/new-api /
+EXPOSE 3000
+WORKDIR /data
+ENTRYPOINT ["/new-api"]

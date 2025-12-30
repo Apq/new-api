@@ -1,0 +1,27 @@
+# TLS 证书配置（动态加载，证书更新后自动生效）
+
+tls:
+  certificates:
+    # 默认证书
+    - certFile: /cert/fullchain.pem
+      keyFile: /cert/key.pem
+
+    # QQ charge60 证书
+    - certFile: /cert/charge60/1450204145_0171411546332619.crt
+      keyFile: /cert/charge60/1450204145_0171411546332619.key
+
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /cert/fullchain.pem
+        keyFile: /cert/key.pem
+
+  options:
+    default:
+      minVersion: VersionTLS12
+      sniStrict: false
+
+    # QQ 证书选项（用于 zl-q.syya.com）
+    qq-tls:
+      minVersion: VersionTLS12
+      sniStrict: false

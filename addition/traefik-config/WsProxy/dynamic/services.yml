@@ -1,0 +1,130 @@
+# 服务定义配置
+
+http:
+  services:
+    # ==================== 文件服务器 ====================
+
+    # gadmin60 静态文件服务
+    gadmin60-static-srv:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:46961"
+
+    # gadmin62 静态文件服务
+    gadmin62-static-srv:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:46963"
+
+    # gadmin66 静态文件服务
+    gadmin66-static-srv:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:46967"
+
+    # ==================== 基础服务 ====================
+
+    # GsProxy_45800
+    gsproxy-45800:
+      loadBalancer:
+        servers:
+          - url: "http://gsproxy_45800:45800"
+
+    # GsProxy_45801
+    gsproxy-45801:
+      loadBalancer:
+        servers:
+          - url: "http://gsproxy_45801:45800"
+
+    # WsRepeater
+    wsrepeater:
+      loadBalancer:
+        servers:
+          - url: "http://wsrepeater:45802"
+
+    # ==================== gadminApi 服务 ====================
+
+    # gadminApi60
+    gadminapi60:
+      loadBalancer:
+        servers:
+          - url: "http://gadminApi60:47960"
+
+    # gadminApi62
+    gadminapi62:
+      loadBalancer:
+        servers:
+          - url: "http://gadminApi62:47962"
+
+    # gadminApi66
+    gadminapi66:
+      loadBalancer:
+        servers:
+          - url: "http://gadminApi66:47966"
+
+    # ==================== charge 服务 ====================
+
+    # charge66
+    charge66:
+      loadBalancer:
+        servers:
+          - url: "http://charge66:45902"
+
+    # charge62
+    charge62:
+      loadBalancer:
+        servers:
+          - url: "http://charge62:45902"
+
+    # charge60
+    charge60:
+      loadBalancer:
+        servers:
+          - url: "http://charge60:45902"
+
+    # charge32
+    charge32:
+      loadBalancer:
+        servers:
+          - url: "http://charge32:45902"
+
+    # ==================== 其他服务 ====================
+
+    # syncthing
+    syncthing:
+      loadBalancer:
+        servers:
+          - url: "http://172.31.0.1:8384"
+
+    # 毛线
+    maoxian:
+      loadBalancer:
+        servers:
+          - url: "http://maoxian:3000"
+
+    # ==================== new-api 服务 ====================
+
+    # new-api 主服务
+    new-api:
+      loadBalancer:
+        servers:
+          - url: "http://new-api:3000"
+
+    # new-api-logger 镜像目标
+    new-api-logger:
+      loadBalancer:
+        servers:
+          - url: "http://new-api-logger:5100"
+
+    # new-api 带镜像的服务（用于默认路由）
+    new-api-mirrored:
+      mirroring:
+        service: new-api
+        mirrors:
+          - name: new-api-logger
+            percent: 100
+
+  # ==================== 服务传输配置 ====================
+  serversTransports:
+    insecure-transport:
+      insecureSkipVerify: true

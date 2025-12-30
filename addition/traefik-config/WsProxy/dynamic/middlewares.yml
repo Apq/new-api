@@ -1,0 +1,28 @@
+# 中间件配置
+
+http:
+  middlewares:
+    # 压缩中间件（对应 Caddy 的 encode zstd gzip）
+    compress:
+      compress:
+        excludedContentTypes:
+          - text/event-stream
+
+    # HTTP 重定向到 HTTPS
+    redirect-to-https:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+    # ==================== 路径前缀剥离中间件 ====================
+    # 对应 Caddy 的 handle_path（自动剥离前缀）
+
+    strip-syncthing:
+      stripPrefix:
+        prefixes:
+          - "/syncthing"
+
+    strip-maoxian:
+      stripPrefix:
+        prefixes:
+          - "/maoxian"
